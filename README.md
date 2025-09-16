@@ -2,6 +2,10 @@
 
 **iagent** is an intelligent AI agent framework specifically optimized for DevOps tasks. It combines the power of Large Language Models (LLMs) with practical DevOps tools to help you troubleshoot, debug, and solve infrastructure problems.
 
+## Architecture
+
+![iagent Architecture](arch.png)
+
 ## Features
 
 - **DevOps-Focused**: Specialized for web search, log analysis, system monitoring, and CI/CD debugging
