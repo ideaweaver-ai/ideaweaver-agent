@@ -1,3 +1,0 @@
-[console_scripts]
-iagent = iagent.cli:main
-iagent-cicd-debug = iagent.cicd_debugger.cli:main
