@@ -1,6 +1,10 @@
 # iagent - DevOps AI Agent
 
+![iagent Logo](ideaweaver-agent.png)
+
 **iagent** is an intelligent AI agent framework specifically optimized for DevOps tasks. It combines the power of Large Language Models (LLMs) with practical DevOps tools to help you troubleshoot, debug, and solve infrastructure problems.
+
+> **Note**: iagent is built on top of [Hugging Face's smolagent](https://github.com/huggingface/smolagent) but is specifically designed and optimized for DevOps use cases, providing specialized tools for web search, log analysis, system monitoring, and CI/CD debugging.
 
 ## Architecture
 
