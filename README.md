@@ -52,13 +52,13 @@ export IAGENT_MODEL_ID="gpt-4o-mini"
 
 **Note**: Without setting the API key, both the CLI and API will fail to work.
 
-## 📖 Usage
+## Usage
 
 ### 1. Command Line Interface (CLI)
 
 #### Basic Usage
 
-**⚠️ Make sure to set your API key first:**
+**Make sure to set your API key first:**
 ```bash
 export OPENAI_API_KEY="your-api-key-here"
 ```
@@ -107,7 +107,7 @@ options:
   --max-steps MAX_STEPS
                         Maximum number of steps (default: 10)
   --stream              Stream output in real-time
-  --execute             ⚠️ Execute code locally (default: safe preview mode only)
+  --execute             ⚠Execute code locally (default: safe preview mode only)
   --verbose             Enable verbose logging
 ```
 
@@ -251,11 +251,11 @@ Sep 16 09:30:25 server1 sshd[1236]: Failed password for user from 192.168.1.100 
     data = json.loads(result)
     
     # Display security analysis
-    print(f"🛡️ Security Events: {data['security_analysis']['total_security_events']}")
-    print(f"🚨 Threat Level: {data['security_analysis']['threat_level']}")
+    print(f"Security Events: {data['security_analysis']['total_security_events']}")
+    print(f"Threat Level: {data['security_analysis']['threat_level']}")
     
     # Show security recommendations
-    print("\n🔒 SECURITY RECOMMENDATIONS:")
+    print("\n SECURITY RECOMMENDATIONS:")
     for rec in data['devops_recommendations']:
         print(rec)
     
@@ -292,15 +292,15 @@ The repository includes ready-to-use test scripts for immediate testing:
 
 **NGINX Analysis:**
 ```
-📊 Total entries: 6
-🔍 4xx Error Rate: 50.0%
-🔍 5xx Error Rate: 16.67%
-🛡️ Security Level: low
+Total entries: 6
+4xx Error Rate: 50.0%
+5xx Error Rate: 16.67%
+Security Level: low
 
 🔧 LLM RECOMMENDATIONS:
 
 --- RECOMMENDATION 1 ---
-🟠 MODERATE INCIDENT
+MODERATE INCIDENT
 
 ROOT CAUSE HYPOTHESIS:
 • Intermittent issues with /about.html endpoint causing 16.67% server errors
@@ -323,12 +323,12 @@ PRIORITY: MEDIUM - Monitor closely for escalation, 16.67% error rate (1/6)
 
 **Security Analysis:**
 ```
-🛡️ Security Events: 8
-🚨 Threat Level: high
+Security Events: 8
+Threat Level: high
 
-🔒 SECURITY RECOMMENDATIONS:
+SECURITY RECOMMENDATIONS:
 
-🚨 HIGH SECURITY THREAT DETECTED
+HIGH SECURITY THREAT DETECTED
 
 ROOT CAUSE HYPOTHESIS:
 • Active security attack detected with 8 security events
