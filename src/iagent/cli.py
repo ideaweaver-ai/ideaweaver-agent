@@ -80,13 +80,19 @@ def create_model(model_type: str, model_id: str, **kwargs):
         return LiteLLMModel(model_id=model_id, **kwargs)
     elif model_type.lower() == "huggingface":
         return HuggingFaceModel(model_id=model_id, **kwargs)
+    elif model_type.lower() == "ollama":
+        from .models import OllamaModel
+        return OllamaModel(model_id=model_id, **kwargs)
+    elif model_type.lower() == "bedrock":
+        from .models import BedrockModel
+        return BedrockModel(model_id=model_id, **kwargs)
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
 
 def get_available_tools():
     """Get list of available tools."""
-    return ["web_search", "parse_logs", "final_answer"]
+    return ["web_search", "parse_logs", "system_monitor", "get_cicd_status", "debug_cicd_failure", "analyze_cicd_patterns"]
 
 
 def create_tools(tool_names: list, log_file: Optional[str] = None):
@@ -129,18 +135,14 @@ def run_agent(task: str,
         
         # Create tools
         if tools is None:
-            tools = ["final_answer"]  # Default tools include final answer
-        else:
-            # Always include final_answer if other tools are specified
-            if "final_answer" not in tools:
-                tools.append("final_answer")
+            tools = []  # No default tools
         
         tool_instances = create_tools(tools, log_file)
         logger.info(f"Using tools: {[t.name for t in tool_instances]}")
         
         # Create agent with execution mode
         # Auto-select agent type based on tools
-        if tools and len(tools) > 1:  # If multiple tools or tools other than just final_answer
+        if tools and len(tools) > 0:  # If any tools are specified
             agent_type = "tool"  # Use ToolCallingAgent for tool usage
             logger.info(f"Auto-selected agent type: {agent_type} (tools detected)")
         
@@ -176,9 +178,9 @@ def run_agent(task: str,
         
         # Show execution mode
         if execute:
-            print("⚠️  EXECUTION MODE: Code will be executed locally")
+            print("EXECUTION MODE: Code will be executed locally")
         else:
-            print("🔒 SAFE MODE: Code will be previewed only (use --execute to run code)")
+            print("SAFE MODE: Code will be previewed only (use --execute to run code)")
         
         # Run agent
         # Modify task if parse_logs tool is used with log file
@@ -189,7 +191,7 @@ def run_agent(task: str,
         
         logger.info(f"Running {agent_type} agent on task: {modified_task}")
         
-        print("🤖 iagent is thinking...\n")
+        print("iagent is thinking...\n")
         
         # Handle the agent response
         agent_response = agent.run(modified_task)
@@ -210,49 +212,49 @@ def run_agent(task: str,
                         if step["type"] == "stream":
                             print(step["content"], end="", flush=True)
                         elif step["type"] == "code_output":
-                            print(f"\n📝 Code output: {step['content']}")
+                            print(f"\nCode output: {step['content']}")
                         elif step["type"] == "tool_result":
-                            print(f"\n🔧 Tool result: {step['result']}")
+                            print(f"\nTool result: {step['result']}")
                         elif step["type"] == "error":
-                            print(f"\n❌ Error: {step['content']}")
+                            print(f"\nError: {step['content']}")
                         elif step["type"] == "final":
                             final_result = step["result"]
             except StopIteration as e:
                 if getattr(e, "value", None) is not None and final_result is None:
                     final_result = e.value
             if final_result is not None:
-                print(f"\n\n✅ Final Answer:")
+                print(f"\n\nFinal Answer:")
                 print("=" * 60)
                 # Format the answer with proper line breaks
                 formatted_answer = _format_final_answer(final_result.answer)
                 print(formatted_answer)
                 print("=" * 60)
-                print(f"⏱️  Duration: {final_result.duration:.2f}s")
-                print(f"📊 Steps: {len(final_result.steps)}")
+                print(f"Duration: {final_result.duration:.2f}s")
+                print(f"Steps: {len(final_result.steps)}")
             else:
-                print("\n\n⚠️ No final result produced.")
+                print("\n\nNo final result produced.")
         else:
             # It's a result object
             result = agent_response
-            print(f"\n\n✅ Final Answer:")
+            print(f"\n\nFinal Answer:")
             print("=" * 60)
             # Format the answer with proper line breaks
             formatted_answer = _format_final_answer(result.answer)
             print(formatted_answer)
             print("=" * 60)
-            print(f"⏱️  Duration: {result.duration:.2f}s")
-            print(f"📊 Steps: {len(result.steps)}")
+            print(f"Duration: {result.duration:.2f}s")
+            print(f"Steps: {len(result.steps)}")
     
     except Exception as e:
         logger.error(f"Agent execution failed: {e}")
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
         sys.exit(1)
 
 
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="🤖 iagent: DevOps AI Agent with Real-time Log Analysis & Troubleshooting",
+        description="iagent: DevOps AI Agent with Real-time Log Analysis & Troubleshooting",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -262,14 +264,17 @@ Examples:
   # Log analysis with specific log file
   iagent "Analyze nginx logs from the last 10 minutes" --tools parse_logs --log-file /var/log/nginx/access.log
 
-  # CI/CD debugging
-  iagent "Debug my GitHub Actions workflow failure" --tools debug_cicd_failure
-
   # System performance monitoring
   iagent "Monitor system performance" --tools system_monitor
 
+  # CI/CD debugging
+  iagent "Debug my GitHub Actions workflow failure" --tools debug_cicd_failure
+
+  # CI/CD status check
+  iagent "Check CI/CD status" --tools get_cicd_status
+
 Available Tools:
-  web_search         - AI-powered DevOps search and troubleshooting
+  web_search         - AI-powered DevOps search and troubleshooting (Kubernetes, Docker, CI/CD, Infrastructure as Code)
   parse_logs         - Real-time log analysis (NGINX, syslog, secure logs)
   system_monitor     - Monitor system performance (CPU, memory, disk, processes)
   get_cicd_status    - Get comprehensive status of recent CI/CD workflow runs
@@ -296,7 +301,7 @@ Safety Note:
     parser.add_argument(
         "--model-type",
         default="openai",
-        choices=["openai", "litellm", "huggingface"],
+        choices=["openai", "litellm", "huggingface", "ollama", "bedrock"],
         help="Model provider (default: openai)"
     )
     
@@ -340,7 +345,7 @@ Safety Note:
     parser.add_argument(
         "--execute",
         action="store_true",
-        help="⚠️ Execute code locally (default: safe preview mode only)"
+        help="Execute code locally (default: safe preview mode only)"
     )
     
     parser.add_argument(
