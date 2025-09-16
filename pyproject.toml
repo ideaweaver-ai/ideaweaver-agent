@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iagent"
+dynamic = ["version"]
+description = "🤖 iagent: Intelligent Agents that Think in Code"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Prashant Lakhera", email = "plakhera@ideaweaver.ai"}
+]
+maintainers = [
+    {name = "Prashant Lakhera", email = "plakhera@ideaweaver.ai"}
+]
+keywords = ["ai", "agents", "llm", "code-execution", "automation"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "huggingface-hub>=0.31.2",
+    "requests>=2.32.3",
+    "rich>=13.9.4",
+    "jinja2>=3.1.4",
+    "python-dotenv",
+    "openai>=1.58.1",
+    "litellm>=1.60.2",
+    "pandas>=1.3.0",
+    "python-dateutil>=2.8.0",
+]
+
+[project.optional-dependencies]
+torch = [
+    "torch",
+    "transformers>=4.0.0",
+    "accelerate",
+]
+gradio = [
+    "gradio>=5.14.0",
+]
+all = [
+    "iagent[torch,gradio]",
+]
+
+[project.scripts]
+iagent = "iagent.cli:main"
+iagent-cicd-debug = "iagent.cicd_debugger.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/your-username/iagent"
+Repository = "https://github.com/your-username/iagent"
+Documentation = "https://github.com/your-username/iagent#readme"
+Issues = "https://github.com/your-username/iagent/issues"
+
+[tool.setuptools.dynamic]
+version = {attr = "iagent.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

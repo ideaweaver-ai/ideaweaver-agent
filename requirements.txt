@@ -1,0 +1,23 @@
+# Core dependencies
+pytest==7.4.0
+pytest-cov==4.1.0
+flake8==6.0.0
+black==23.7.0
+
+# Database dependencies
+psycopg2-binary==2.9.7
+sqlalchemy==2.0.19
+
+# Web framework
+fastapi==0.100.0
+uvicorn==0.23.0
+
+# Performance testing
+locust==2.15.1
+
+# This will cause a failure - non-existent package
+nonexistent-package==0.0.1
+
+# Security scanning
+bandit==1.7.5
+safety==2.3.5

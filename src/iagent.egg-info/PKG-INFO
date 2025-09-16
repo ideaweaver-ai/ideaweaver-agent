@@ -1,0 +1,587 @@
+Metadata-Version: 2.4
+Name: iagent
+Version: 1.0.0
+Summary: 🤖 iagent: Intelligent Agents that Think in Code
+Home-page: https://github.com/your-username/iagent
+Author: Prashant Lakhera
+Author-email: plakhera@ideaweaver.ai
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: huggingface-hub>=0.31.2
+Requires-Dist: requests>=2.32.3
+Requires-Dist: rich>=13.9.4
+Requires-Dist: jinja2>=3.1.4
+Requires-Dist: python-dotenv
+Requires-Dist: openai>=1.58.1
+Requires-Dist: litellm>=1.60.2
+Requires-Dist: pandas>=1.3.0
+Requires-Dist: python-dateutil>=2.8.0
+Provides-Extra: torch
+Requires-Dist: torch; extra == "torch"
+Requires-Dist: transformers>=4.0.0; extra == "torch"
+Requires-Dist: accelerate; extra == "torch"
+Provides-Extra: gradio
+Requires-Dist: gradio>=5.14.0; extra == "gradio"
+Provides-Extra: all
+Requires-Dist: iagent[gradio,torch]; extra == "all"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# 🤖 iagent: Intelligent Agents that Think in Code
+
+A powerful library for building AI agents that can execute Python code, use tools, and interact with various language models. Built from scratch with inspiration from modern agent architectures.
+
+## ✨ Features
+
+- **🧠 Code-First Thinking**: Agents write and execute Python code as their primary reasoning mechanism
+- **🔧 Tool Integration**: Easy-to-use tool system with built-in tools and custom tool creation
+- **🤖 Multiple Agent Types**: CodeAgent, ToolCallingAgent, and TriageAgent for different use cases
+- **🚨 SRE Incident Triage**: Specialized agent for log analysis and incident response with AI-powered recommendations
+- **🌐 LLM-Agnostic**: Support for OpenAI, LiteLLM, and Hugging Face models
+- **🛡️ Security-First**: Safe code execution with sandboxed environments
+- **📊 Memory Management**: Track conversation history and execution steps
+- **⚡ Streaming Support**: Real-time output streaming for better UX
+- **🖥️ CLI Interface**: Easy-to-use command-line interface
+
+## 🚀 Quick Start
+
+### Installation
+
+```bash
+# Install iagent
+pip install "iagent[all]"
+
+# Or install in development mode
+git clone <your-repo>
+cd iagent
+pip install -e .
+```
+
+### Basic Usage
+
+```python
+from iagent import CodeAgent, OpenAIModel, tool
+
+# Create a model
+model = OpenAIModel(model_id="gpt-3.5-turbo")
+
+# Create a custom tool
+@tool
+def get_weather(location: str) -> str:
+    """Get weather information for a location."""
+    return f"Weather in {location}: Sunny and 25°C"
+
+# Create an agent
+agent = CodeAgent(
+    model=model,
+    tools=[get_weather],
+    stream_outputs=True
+)
+
+# Run the agent
+result = agent.run("What's the weather like in Paris?")
+print(result.answer)
+```
+
+### Command Line Interface
+
+```bash
+# Basic usage
+iagent "What is 2 + 2?"
+
+# With web search
+iagent "Search for Python programming tutorials" --tools web_search
+
+# With streaming
+iagent "Calculate the factorial of 10" --stream
+
+# Different model
+iagent "What's the weather like?" --model-type openai --model-id gpt-4
+```
+
+## 🏗️ Architecture
+
+### Core Components
+
+1. **Models** (`models.py`): LLM-agnostic interfaces for different providers
+2. **Agents** (`agents.py`): Agent implementations with ReAct framework
+3. **Tools** (`tools.py`): Tool abstraction and decorator system
+4. **Memory** (`memory.py`): Conversation history and step tracking
+5. **Executor** (`executor.py`): Safe Python code execution
+6. **CLI** (`cli.py`): Command-line interface
+
+### Agent Types
+
+#### CodeAgent
+The flagship agent that writes actions as Python code snippets:
+
+```python
+from iagent import CodeAgent, OpenAIModel
+
+model = OpenAIModel(model_id="gpt-3.5-turbo")
+agent = CodeAgent(model=model, tools=[WebSearchTool()])
+
+result = agent.run("How many seconds would it take for a leopard at full speed to run through Pont des Arts?")
+```
+
+#### ToolCallingAgent
+Traditional agent using built-in tool calling methods:
+
+```python
+from iagent import ToolCallingAgent, OpenAIModel
+
+model = OpenAIModel(model_id="gpt-3.5-turbo")
+agent = ToolCallingAgent(model=model, tools=[WebSearchTool()])
+
+result = agent.run("What's the latest news about AI?")
+```
+
+#### TriageAgent
+Specialized agent for SRE incident triage and log analysis:
+
+```python
+from iagent import TriageAgent, OpenAIModel
+
+model = OpenAIModel(model_id="gpt-3.5-turbo")
+triage_agent = TriageAgent(model=model)
+
+# Analyze NGINX logs for incidents
+result = triage_agent.run("Analyze ./logs/nginx.log for 5xx spikes in the last 15 minutes")
+
+# Stream the triage analysis
+for step in triage_agent.run("Check for errors in nginx.log"):
+    if step["type"] == "stream":
+        print(step["content"], end="", flush=True)
+    elif step["type"] == "final":
+        print(f"\n✅ Analysis: {step['result'].answer}")
+```
+
+## 🔧 Tools
+
+### Built-in Tools
+
+- **WebSearchTool**: Web search using DuckDuckGo
+- **CalculatorTool**: Mathematical calculations
+- **FinalAnswerTool**: Provide final answers
+- **LoadFileHead**: Preview the first N lines of a text file
+- **ParseNginx**: Parse NGINX access logs and analyze metrics
+
+### Custom Tools
+
+Create custom tools using the `@tool` decorator:
+
+```python
+from iagent import tool
+
+@tool
+def analyze_text(text: str) -> str:
+    """Analyze text and return insights."""
+    word_count = len(text.split())
+    char_count = len(text)
+    return f"Text analysis: {word_count} words, {char_count} characters"
+
+@tool
+def get_stock_price(symbol: str) -> str:
+    """Get stock price for a symbol."""
+    # Your implementation here
+    return f"Stock price for {symbol}: $150.00"
+```
+
+## 🌐 Model Integration
+
+### OpenAI
+
+```python
+from iagent import OpenAIModel
+
+model = OpenAIModel(
+    model_id="gpt-4",
+    api_key="your-api-key"
+)
+```
+
+### LiteLLM (100+ providers)
+
+```python
+from iagent import LiteLLMModel
+
+model = LiteLLMModel(
+    model_id="anthropic/claude-3-5-sonnet-latest",
+    api_key="your-api-key"
+)
+```
+
+### Hugging Face
+
+```python
+from iagent import HuggingFaceModel
+
+model = HuggingFaceModel(
+    model_id="microsoft/DialoGPT-medium",
+    token="your-hf-token"
+)
+```
+
+## 🛡️ Security
+
+### Code Execution Safety
+
+- **Import Restrictions**: Control which packages can be imported
+- **AST Validation**: Parse and validate code before execution
+- **Timeout Protection**: Prevent infinite loops
+- **Output Limits**: Truncate excessive output
+- **Sandboxed Execution**: Multiple security levels
+
+### Safe Built-ins
+
+Only safe built-in functions are available:
+- Mathematical: `abs`, `round`, `min`, `max`, `sum`, `pow`
+- Data structures: `list`, `dict`, `set`, `tuple`
+- Utilities: `len`, `enumerate`, `zip`, `filter`, `map`
+
+## 📊 Memory and Monitoring
+
+### Conversation History
+
+```python
+# Access memory
+memory = agent.memory
+print(f"Total steps: {len(memory)}")
+print(f"Token usage: {memory.token_usage}")
+
+# Get conversation history
+history = memory.get_conversation_history()
+for msg in history:
+    print(f"{msg['role']}: {msg['content']}")
+```
+
+### Step Tracking
+
+```python
+# Get steps by type
+thought_steps = memory.get_steps_by_type(StepType.THOUGHT)
+action_steps = memory.get_steps_by_type(StepType.ACTION)
+
+# Get memory summary
+summary = memory.get_summary()
+print(f"Duration: {summary['duration']:.2f}s")
+print(f"Steps: {summary['total_steps']}")
+```
+
+## 🖥️ CLI Usage
+
+### Basic Commands
+
+```bash
+# Simple question
+iagent "What is the capital of France?"
+
+# With specific tools
+iagent "Search for machine learning tutorials" --tools web_search calculator
+
+# Different agent type
+iagent "Analyze this data" --agent-type tool
+
+# Triage agent for SRE incidents
+iagent "Analyze nginx.log for 5xx errors" --agent-type triage
+
+# Streaming output
+iagent "Tell me a story" --stream
+
+# Verbose logging
+iagent "Debug this issue" --verbose
+```
+
+### Advanced Options
+
+```bash
+# Custom model
+iagent "Complex task" --model-type openai --model-id gpt-4
+
+# More steps
+iagent "Multi-step task" --max-steps 20
+
+# Multiple tools
+iagent "Research task" --tools web_search calculator final_answer
+```
+
+## 🔄 ReAct Framework
+
+iagent implements the ReAct (Reasoning → Action → Observation) framework:
+
+1. **Reasoning**: Agent thinks about the next action
+2. **Action**: Executes code or calls tools
+3. **Observation**: Records results and updates memory
+4. **Repeat**: Continues until task completion
+
+### Example ReAct Loop
+
+```python
+# Step 1: Reasoning
+Thought: I need to calculate the area of a circle with radius 5
+
+# Step 2: Action
+```python
+import math
+radius = 5
+area = math.pi * radius ** 2
+print(f"Area: {area}")
+```
+
+# Step 3: Observation
+Area: 78.53981633974483
+
+# Step 4: Final Answer
+final_answer("The area of a circle with radius 5 is approximately 78.54 square units")
+```
+
+## 🚨 SRE Incident Triage
+
+The TriageAgent is specifically designed for Site Reliability Engineering (SRE) incident response and log analysis.
+
+### NGINX Log Analysis
+
+```python
+from iagent import TriageAgent, OpenAIModel
+
+# Set up the model
+model = OpenAIModel(model_id="gpt-3.5-turbo")
+triage_agent = TriageAgent(model=model)
+
+# Analyze logs for recent incidents
+task = "Analyze ./logs/nginx_access.log for 5xx errors in the last 15 minutes"
+result = triage_agent.run(task)
+
+print(result.answer)
+# Output: Structured analysis with error counts, spike detection, 
+# top error paths, and actionable recommendations
+```
+
+### Intelligent System Detection
+
+The triage agent automatically identifies affected systems based on endpoint patterns:
+
+- **`/api/products`** → Product catalog service, Inventory system, Price engine
+- **`/api/checkout`** → Payment processor, Order management, Checkout system  
+- **`/api/auth`** → Authentication service, User session store, Identity provider
+- **`/api/data`** → Data processing service, Analytics pipeline, Database layer
+- **Custom endpoints** → Backend service, Application layer, Core API
+
+This enables targeted recommendations for specific service components and their dependencies.
+
+### CLI Triage Commands
+
+```bash
+# Quick triage analysis
+iagent "Check nginx.log for errors" --agent-type triage
+
+# Analyze specific time window
+iagent "Look for 5xx spikes in the last 30 minutes in /var/log/nginx/access.log" --agent-type triage
+
+# Multi-step incident investigation
+iagent "Investigate high error rate and recommend actions" --agent-type triage --max-steps 10
+```
+
+### Triage Tools
+
+- **load_file_head**: Preview log file format and recent entries
+- **parse_nginx**: Parse NGINX logs with error rate analysis and spike detection
+- **generate_recommendations**: Generate AI-powered incident response recommendations
+- **web_search**: Search for error codes, incident patterns, or solutions
+- **final_answer**: Provide structured incident summary with recommendations
+
+### Incident Priority Levels
+
+The triage agent automatically categorizes incidents based on error rates:
+
+#### 🔴 CRITICAL (>40% 5xx errors)
+- **Immediate Actions**: Service restart, circuit breakers, emergency scaling
+- **Short-term**: Deployment rollbacks, database optimization, rate limiting
+- **Long-term**: Comprehensive monitoring, auto-scaling, chaos engineering
+
+#### 🟡 HIGH PRIORITY (20-40% 5xx errors)
+- **Immediate Actions**: Health checks, resource monitoring, log analysis
+- **Short-term**: Horizontal scaling, caching, query optimization
+- **Long-term**: Performance testing, graceful degradation, monitoring improvements
+
+#### 🟠 MODERATE (5-20% 5xx errors)
+- **Immediate Actions**: Trend monitoring, configuration review, latency checks
+- **Short-term**: Root cause investigation, targeted optimization
+- **Long-term**: Proactive monitoring, timeout improvements, observability
+
+#### 🟢 LOW PRIORITY (<5% 5xx errors)
+- **Immediate Actions**: Baseline monitoring, pattern documentation
+- **Short-term**: Optimization opportunities, client-side improvements
+- **Long-term**: Reliability improvements, periodic health checks
+
+### Sample Triage Output
+
+```
+🔍 INCIDENT ANALYSIS:
+• Total Requests: 1,600 (last 15 minutes)
+• 4xx Errors: 120 (7.5%)
+• 5xx Errors: 700 (43.75%)
+
+⚠️  SPIKE DETECTED:
+• 10:05 AM: 12 5xx errors (above threshold)
+• 10:07 AM: 8 5xx errors 
+• 10:09 AM: 15 5xx errors
+• 10:12 AM: 10 5xx errors
+
+🎯 TOP ERROR PATHS:
+• /api/products: 450 errors
+• /api/checkout: 180 errors
+• /api/auth: 70 errors
+
+🤖 AI-GENERATED RECOMMENDATIONS:
+🔴 CRITICAL INCIDENT DETECTED
+
+ROOT CAUSE HYPOTHESIS:
+• Primary failure in /api/products endpoint causing 43.75% server errors
+• Product catalog service likely crashed or overwhelmed (450 errors)
+• Cascading failures affecting Inventory system
+• Database connection pool exhaustion or backend service failure
+
+IMMEDIATE ACTIONS (0-5 minutes):
+• Check health status of Product catalog service immediately
+• Restart Product catalog service if unresponsive
+• Enable circuit breaker for /api/products endpoint to prevent further damage
+• Scale up healthy instances of Product catalog service immediately
+• Verify database connectivity and connection pool status
+• Check load balancer configuration for /api/products
+
+SHORT-TERM ACTIONS (5-30 minutes):
+• Review recent deployments for rollback candidates (last 2 hours)
+• Check database performance metrics and slow query logs
+• Monitor error recovery trends every 2 minutes
+• Implement temporary rate limiting on /api/products (50% traffic)
+• Verify backup systems and failover mechanisms
+• Check dependency services: Product catalog service, Inventory system, Price engine
+
+LONG-TERM PREVENTIVE MEASURES:
+• Add comprehensive health checks for /api/products endpoint
+• Implement auto-scaling based on error rates (trigger at 10%)
+• Set up proactive alerting at 5% error threshold for /api/products
+• Add chaos engineering tests for Product catalog service resilience
+• Implement circuit breaker pattern for all critical endpoints
+• Add request timeout and retry logic improvements
+
+PRIORITY: CRITICAL - Service degradation affecting 43.75% of all requests (700/1600)
+```
+
+## 🧪 Examples
+
+### Mathematical Calculations
+
+```python
+from iagent import CodeAgent, OpenAIModel
+
+model = OpenAIModel(model_id="gpt-3.5-turbo")
+agent = CodeAgent(model=model)
+
+result = agent.run("Calculate the factorial of 10 and find its prime factors")
+print(result.answer)
+```
+
+### Web Research
+
+```python
+from iagent import CodeAgent, OpenAIModel, WebSearchTool
+
+model = OpenAIModel(model_id="gpt-3.5-turbo")
+agent = CodeAgent(model=model, tools=[WebSearchTool()])
+
+result = agent.run("What are the latest developments in quantum computing?")
+print(result.answer)
+```
+
+### Data Analysis
+
+```python
+from iagent import CodeAgent, OpenAIModel
+
+model = OpenAIModel(model_id="gpt-3.5-turbo")
+agent = CodeAgent(model=model)
+
+data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+result = agent.run(f"Analyze this dataset: {data}. Calculate mean, median, and standard deviation.")
+print(result.answer)
+```
+
+## 🔧 Development
+
+### Project Structure
+
+```
+iagent/
+├── src/iagent/
+│   ├── __init__.py          # Main package
+│   ├── agents.py            # Agent implementations
+│   ├── models.py            # Model integrations
+│   ├── tools.py             # Tool system
+│   ├── memory.py            # Memory management
+│   ├── executor.py          # Code execution
+│   ├── utils.py             # Utilities
+│   └── cli.py               # Command-line interface
+├── pyproject.toml           # Project configuration
+└── README.md               # This file
+```
+
+### Running Tests
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Run with coverage
+pytest --cov=iagent
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- Inspired by the architecture and design principles of smolagents
+- Built with modern Python practices and type hints
+- Uses industry-standard libraries for LLM integration
+
+## 🤝 Support
+
+- **Issues**: Report bugs and feature requests on GitHub
+- **Discussions**: Join community discussions
+- **Documentation**: Check the inline documentation and examples
+
+---
+
+**iagent**: Intelligent Agents that Think in Code 🚀
